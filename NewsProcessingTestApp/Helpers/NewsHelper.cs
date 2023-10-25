@@ -19,14 +19,14 @@ namespace NewsProcessingTestApp.Helpers
         /// </summary>
         /// <param name="query">Ключевое слово по которому искать новости</param>
         /// <param name="language">Язык новостей</param>
-        public static List<Article> GetArticles(string query, params Languages[] languages)
+        public static async Task<List<Article>> GetArticlesAsync(string query, params Languages[] languages)
         {
-            var articles = new List<Article>();
+            var tasks = new List<Task<List<Article>>>();
 
-            foreach(var language in languages)
-                articles.AddRange(GetArticles(query, language));
+            foreach (var language in languages)
+                tasks.Add(GetArticlesAsync(query, language));
 
-            return articles;
+            return (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
         }
 
         /// <summary>
@@ -34,9 +34,9 @@ namespace NewsProcessingTestApp.Helpers
         /// </summary>
         /// <param name="query">Ключевое слово по которому искать новости</param>
         /// <param name="language">Язык новостей</param>
-        public static List<Article> GetArticles(string query, Languages language)
+        public static async Task<List<Article>> GetArticlesAsync(string query, Languages language)
         {
-            var articlesResponse = _newsApiClient.GetEverything(new EverythingRequest
+            var articlesResponse = await _newsApiClient.GetEverythingAsync(new EverythingRequest
             {
                 Q = query,
                 SortBy = SortBys.Popularity,
